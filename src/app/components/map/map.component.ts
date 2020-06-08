@@ -3,6 +3,7 @@ import {MapService} from '../../services/map/map.service';
 import {PointsLayerService} from '../../services/points-layer/points-layer.service';
 import {ServerService} from '../../services/server/server.service';
 import {HttpClient} from '@angular/common/http';
+import {map} from 'rxjs/operators';
 
 @Component({
   selector: 'app-map',
@@ -31,8 +32,8 @@ export class MapComponent implements OnInit, OnDestroy, AfterViewInit {
 
   refresh() {
     this.pointsLayer.cleanLayer();
-    this.server.refresh().subscribe(entities => {
-      entities.forEach(entity => this.pointsLayer.addPoint(entity));
-    });
+    this.server.refresh()
+      .pipe(map(entities => this.pointsLayer.entitiesToGraphics(entities)))
+      .subscribe(points => this.pointsLayer.addPoints(points));
   }
 }

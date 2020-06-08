@@ -7,6 +7,8 @@ import {Entity} from '../../models/entity.model';
 import {ServerService} from '../server/server.service';
 import {bindCallback} from 'rxjs';
 
+import esri = __esri;
+
 @Injectable({
   providedIn: 'root'
 })
@@ -34,20 +36,23 @@ export class PointsLayerService {
     });
   }
 
-  public addPoint(entity: Entity) {
-    const point = new Graphic({
+  public addPoints(points: esri.Graphic[]) {
+    this.mapService.mapView$.subscribe(mapView => mapView.graphics.addMany(points));
+  }
+
+  public entitiesToGraphics(entities: Entity[]): esri.Graphic[] {
+    return entities.map(entity => new Graphic({
       geometry: PointsLayerService.getPoint(entity.longitude, entity.latitude),
-      symbol: PointsLayerService.getSimpleMarkerSymbol()
-    });
-    point.setAttribute('id', entity.id);
-    this.mapService.mapView$.subscribe(mapView => mapView.graphics.add(point));
+      symbol: PointsLayerService.getSimpleMarkerSymbol(),
+      attributes: {id: entity.id}
+    }));
   }
 
   public cleanLayer() {
     this.mapService.mapView$.subscribe(mapView => mapView.graphics.removeAll());
   }
 
-  public postFinishTIme(id: number, finishTime: number) {
-    this.server.postFinishTime({ id, timeStamp: finishTime});
+  public postFinishTIme(id: string, finishTime: number) {
+    this.server.postFinishTime({id, timeStamp: finishTime});
   }
 }
